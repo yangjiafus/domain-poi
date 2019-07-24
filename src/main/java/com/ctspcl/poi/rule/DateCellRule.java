@@ -2,11 +2,15 @@ package com.ctspcl.poi.rule;
 
 import com.ctspcl.poi.DateFormatEnable;
 import lombok.Getter;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.Temporal;
 
 /**
  * @author JiaFu.yang
@@ -20,6 +24,9 @@ public class DateCellRule extends CellRule implements DateFormatEnable {
 
     private Class dateClass;
 
+    protected final static String LOCAL_DATE_TIME = "java.time.LocalDateTime";
+    protected final static String LOCAL_DATE = "java.time.LocalDate";
+
     public DateCellRule(DateTimeFormatter df, Class dateClass) {
         this.df = df;
         this.dateClass = dateClass;
@@ -27,12 +34,24 @@ public class DateCellRule extends CellRule implements DateFormatEnable {
 
     @Override
     public boolean isMatchRule(Cell cell) {
-        return HSSFDateUtil.isCellDateFormatted(cell);
+        cell.setCellType(CellType.NUMERIC);
+        boolean isDate = HSSFDateUtil.isCellDateFormatted(cell);
+        cell.setCellType(CellType.STRING);
+        return isDate;
     }
 
 
     @Override
-    public LocalDateTime format(String timeStr){
-        return LocalDateTime.parse(timeStr,df);
+    public Temporal format(String timeStr){
+
+        if (dateClass.getName().equals(LOCAL_DATE_TIME)) {
+            return LocalDateTime.parse(timeStr,df);
+        }
+
+        if (dateClass.getName().equals(LOCAL_DATE)) {
+            return LocalDate.parse(timeStr,df);
+        }
+
+        return null;
     }
 }

@@ -1,7 +1,7 @@
 package com.ctspcl.poi.rule;
 
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
+import java.util.regex.Pattern;
 
 /**
  * @author JiaFu.yang
@@ -10,8 +10,11 @@ import org.apache.poi.ss.usermodel.CellType;
  **/
 public class NumericCellRule extends CellRule {
 
+    private static final Pattern NUM_PATTERN = Pattern.compile(NumericCellRuleEnum.NUMERIC_REGEX.getRegex());
+
     @Override
     public boolean isMatchRule(Cell cell) {
-        return cell.getCellTypeEnum().equals(CellType.NUMERIC);
+        String cellValue = cell.getStringCellValue();
+        return NUM_PATTERN.matcher(cellValue).matches();
     }
 }

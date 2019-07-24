@@ -1,5 +1,5 @@
 group 'com.ctspcl'
-version '1.0.3'
+version '1.0.4-SNAPSHOT'
 
 apply plugin: 'java'
 
@@ -14,3 +14,5 @@ dependencies {
     compileOnly 'com.ctspcl:ctspcl-common:1.1.1'
     compileOnly 'javax.servlet:javax.servlet-api:3.1.0'
 }
+
+

@@ -12,6 +12,10 @@ public class BooleanCellRule extends CellRule{
 
     @Override
     public boolean isMatchRule(Cell cell) {
-        return cell.getCellTypeEnum().equals(CellType.BOOLEAN);
+        String cellValue = cell.getStringCellValue();
+        return (String.valueOf(Boolean.FALSE).equalsIgnoreCase(cellValue) ||
+                String.valueOf(Boolean.TRUE).equalsIgnoreCase(cellValue));
     }
+
+
 }
