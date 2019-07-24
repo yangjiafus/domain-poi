@@ -37,3 +37,85 @@ if (!CollectionUtils.isEmpty(data)){
 PoiContent.remove();
 
 ```
+相关规则如下:
+```java
+/**客户编码规则*/
+class CustomerCodeRule extends StringCellRule { 
+        @Override
+        public boolean isMatchRule(Cell cell) {
+            return super.isMatchRule(cell) &&
+                    cell.getStringCellValue().startsWith(CUSTOMER_CODE_START) &&
+                    CUSTOMER_CODE_PATTERN.matcher(cell.getStringCellValue().substring(SPLIT_INDEX)).matches();
+        }
+}
+/**产品编码规则*/
+@AllArgsConstructor
+public static class CqProductCodeRule extends StringCellRule {
+
+    private BossServiceGeneralQuotaImportConfig importConfig;
+
+    @Override
+    public boolean isMatchRule(Cell cell) {
+        return importConfig.getCqProductCodeList().contains(cell.getStringCellValue());
+    }
+}
+/**产品编码规则*/
+ @AllArgsConstructor
+public static class SzProductCodeRule extends StringCellRule {
+
+    private BossServiceGeneralQuotaImportConfig importConfig;
+
+    @Override
+    public boolean isMatchRule(Cell cell) {
+        return importConfig.getSzProductCodeList().contains(cell.getStringCellValue());
+    }
+}
+/**授信额度规则*/
+public static class CreditQuotaRule extends NumericCellRule {
+    @Override
+    public boolean isMatchRule(Cell cell) {
+        if (!super.isMatchRule(cell)){
+            return false;
+        }
+        String creditQuota = cell.getStringCellValue();
+        BigDecimal creditQuotaNum = new BigDecimal(creditQuota);
+        return creditQuotaNum.compareTo(BigDecimal.ZERO) >= 0;
+    }
+  }
+
+/**比例规则*/
+public static class RatioRule extends NumericCellRule {
+
+        @Override
+        public boolean isMatchRule(Cell cell) {
+            if (!super.isMatchRule(cell)){
+                return false;
+            }
+            String ratio = cell.getStringCellValue();
+            BigDecimal ratioNum = new BigDecimal(ratio);
+            return ratioNum.compareTo(BigDecimal.ZERO) >= 0 && ratioNum.compareTo(BigDecimal.ONE) <= 0;
+        }
+  }
+
+
+/**单行规则或者联合规则*/
+public static class ValidateRowRule extends RowRule {
+    private final DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final DateCellRule dateCellRule = new DateCellRule(df,LocalDateTime.class);
+
+    @Override
+    public boolean isMatchRule(Row row) {
+        Cell startCell = row.getCell(5);
+        Cell endCell = row.getCell(6);
+        String startTime = startCell.getStringCellValue();
+        String endTime = endCell.getStringCellValue();
+        if (StringUtils.hasText(startTime) && StringUtils.hasText(endTime)){
+            if (dateCellRule.isMatchRule(startCell) && dateCellRule.isMatchRule(endCell)){
+                return ((LocalDateTime)dateCellRule.format(startTime)).compareTo(((LocalDateTime)dateCellRule.format(endTime)))<= 0;
+            }
+        }
+        return false;
+    }
+}
+
+```
