@@ -13,8 +13,10 @@ SzProductCodeRule szProductCodeRule = new SzProductCodeRule(importConfig);
 CreditQuotaRule creditQuotaRule = new CreditQuotaRule();
 RatioRule ratioRule = new RatioRule();
 //设置上下文 中workbook 表头名称以及对应的规则
-PoiImportContent.setHeader(new TableHeader(CUSTOMER_CODE,C_PRODUCT_CODE,S_PRODUCT_CODE,CREDIT_QUOTA,RATIO,VALIDITY_START_TIME,VALIDITY_END_TIME)
-                    .setHeaderRule(customerCodeRule,cqProductCodeRule,szProductCodeRule,creditQuotaRule,ratioRule));
+PoiImportContent.setHeader(new TableHeader(CUSTOMER_CODE,C_PRODUCT_CODE,S_PRODUCT_CODE,
+CREDIT_QUOTA,RATIO,VALIDITY_START_TIME,VALIDITY_END_TIME)
+                    .setHeaderRule(customerCodeRule,
+                    cqProductCodeRule,szProductCodeRule,creditQuotaRule,ratioRule));
 //注册行约束规则                   
 PoiImportContent.registryRowRule(new ValidateRowRule());
 //使用默认解析规则解析 workBook
@@ -45,7 +47,8 @@ class CustomerCodeRule extends StringCellRule {
         public boolean isMatchRule(Cell cell) {
             return super.isMatchRule(cell) &&
                     cell.getStringCellValue().startsWith(CUSTOMER_CODE_START) &&
-                    CUSTOMER_CODE_PATTERN.matcher(cell.getStringCellValue().substring(SPLIT_INDEX)).matches();
+                    CUSTOMER_CODE_PATTERN.matcher(cell.getStringCellValue()
+                    .substring(SPLIT_INDEX)).matches();
         }
 }
 /**产品编码规则*/
@@ -93,7 +96,8 @@ public static class RatioRule extends NumericCellRule {
             }
             String ratio = cell.getStringCellValue();
             BigDecimal ratioNum = new BigDecimal(ratio);
-            return ratioNum.compareTo(BigDecimal.ZERO) >= 0 && ratioNum.compareTo(BigDecimal.ONE) <= 0;
+            return ratioNum.compareTo(BigDecimal.ZERO) >= 0 
+            && ratioNum.compareTo(BigDecimal.ONE) <= 0;
         }
   }
 
@@ -111,7 +115,8 @@ public static class ValidateRowRule extends RowRule {
         String endTime = endCell.getStringCellValue();
         if (StringUtils.hasText(startTime) && StringUtils.hasText(endTime)){
             if (dateCellRule.isMatchRule(startCell) && dateCellRule.isMatchRule(endCell)){
-                return ((LocalDateTime)dateCellRule.format(startTime)).compareTo(((LocalDateTime)dateCellRule.format(endTime)))<= 0;
+                return ((LocalDateTime)dateCellRule.format(startTime))
+                .compareTo(((LocalDateTime)dateCellRule.format(endTime)))<= 0;
             }
         }
         return false;
