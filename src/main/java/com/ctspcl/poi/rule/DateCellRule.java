@@ -34,9 +34,11 @@ public class DateCellRule extends CellRule implements DateFormatEnable {
 
     @Override
     public boolean isMatchRule(Cell cell) {
+        String beforeTime = cell.getStringCellValue();
         cell.setCellType(CellType.NUMERIC);
         boolean isDate = HSSFDateUtil.isCellDateFormatted(cell);
         cell.setCellType(CellType.STRING);
+        cell.setCellValue(beforeTime);
         return isDate;
     }
 
