@@ -1,16 +1,20 @@
 package com.ctspcl.poi.rule;
 
+import com.ctspcl.common.exception.BizException;
+import com.ctspcl.common.exception.ErrorCode;
 import com.ctspcl.poi.DateFormatEnable;
 import lombok.Getter;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
+import java.util.Date;
 
 /**
  * @author JiaFu.yang
@@ -35,6 +39,22 @@ public class DateCellRule extends CellRule implements DateFormatEnable {
     @Override
     public boolean isMatchRule(Cell cell) {
         String beforeTime = cell.getStringCellValue();
+        try {
+            if (parseTemporal(beforeTime) != null){
+                return true;
+            }
+        }catch (Exception e){
+            if (e instanceof  BizException){
+                throw e;
+            }
+        }
+        try {
+            if (parseDate(beforeTime) != null){
+                return true;
+            }
+        }catch (Exception e){
+        }
+
         cell.setCellType(CellType.NUMERIC);
         boolean isDate = HSSFDateUtil.isCellDateFormatted(cell);
         cell.setCellType(CellType.STRING);
@@ -42,18 +62,41 @@ public class DateCellRule extends CellRule implements DateFormatEnable {
         return isDate;
     }
 
+    private Date parseDate(String timeStr){
+        return HSSFDateUtil.getJavaDate(Double.parseDouble(timeStr));
+    }
+
+    private Temporal parseTemporal(String timeStr){
+        if (this.dateClass.getName().equals("java.time.LocalDateTime")) {
+            return LocalDateTime.parse(timeStr, this.df);
+        }
+        if (this.dateClass.getName().equals("java.time.LocalDateTime")) {
+            return LocalDateTime.parse(timeStr, this.df);
+        }
+        throw new BizException(ErrorCode.SERVER_ERROR.getCode(),"POI 插件未指定时间类型");
+    }
 
     @Override
-    public Temporal format(String timeStr){
+    public Temporal format(String timeStr,Cell cell){
 
-        if (dateClass.getName().equals(LOCAL_DATE_TIME)) {
-            return LocalDateTime.parse(timeStr,df);
+        try {
+            Temporal temporal = parseTemporal(timeStr);
+            if (temporal != null){
+                return temporal;
+            }
+        } catch (Exception e) {
+            if (e instanceof  BizException){
+                throw e;
+            }
         }
-
-        if (dateClass.getName().equals(LOCAL_DATE)) {
-            return LocalDate.parse(timeStr,df);
+        Date time = parseDate(timeStr);
+        if (time != null){
+            if (this.dateClass.getName().equals("java.time.LocalDateTime")) {
+                return Instant.ofEpochMilli(time.getTime()).atZone(ZoneOffset.ofHours(8)).toLocalDateTime();
+            } else if (this.dateClass.getName().equals("java.time.LocalDate")) {
+                return Instant.ofEpochMilli(time.getTime()).atZone(ZoneOffset.ofHours(8)).toLocalDate();
+            }
         }
-
-        return null;
+        throw new BizException(ErrorCode.SERVER_ERROR.getCode(), "时间格式或表格类型不正确");
     }
 }
